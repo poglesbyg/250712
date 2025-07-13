@@ -33,6 +33,8 @@ declare class MCPClient {
     private simulateKnowledgeGraph;
     getServerList(): MCPServer[];
     getServerStatus(serverName: string): string | null;
+    simulateServerStart(serverName: string): boolean;
+    simulateServerStop(serverName: string): boolean;
     getAvailableTools(serverName: string): Promise<MCPTool[]>;
     private getToolDescription;
     private getToolSchema;

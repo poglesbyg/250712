@@ -30,7 +30,8 @@ router.get('/servers/:serverName/tools', async (req, res) => {
 router.post('/servers/:serverName/start', async (req, res) => {
     try {
         const { serverName } = req.params;
-        const success = await mcp_client_1.mcpClient.startServer(serverName);
+        // Simulate server start for now
+        const success = mcp_client_1.mcpClient.simulateServerStart(serverName);
         if (success) {
             res.json({ success: true, message: `Server ${serverName} started` });
         }
@@ -46,7 +47,8 @@ router.post('/servers/:serverName/start', async (req, res) => {
 router.post('/servers/:serverName/stop', async (req, res) => {
     try {
         const { serverName } = req.params;
-        const success = await mcp_client_1.mcpClient.stopServer(serverName);
+        // Simulate server stop for now
+        const success = mcp_client_1.mcpClient.simulateServerStop(serverName);
         if (success) {
             res.json({ success: true, message: `Server ${serverName} stopped` });
         }

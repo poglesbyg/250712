@@ -52,7 +52,7 @@ class MCPServerProcess extends EventEmitter {
       this.process = spawn(this.server.command, this.server.args, {
         cwd,
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env, PATH: process.env.PATH },
+        env: { ...process.env },
         shell: false,
       });
 
@@ -199,12 +199,10 @@ class MCPClient {
 
   private initializeDefaultServers() {
     // Register default MCP servers
-    const nodePath = process.execPath || 'node';
-    
     this.registerServer({
       name: 'git-analytics',
-      command: nodePath,
-      args: ['dist/index.js'],
+      command: 'npm',
+      args: ['run', 'start'],
       cwd: './mcp-servers/git-analytics',
       status: 'stopped',
       capabilities: ['analyze_repository', 'commit_patterns', 'branch_insights'],
@@ -212,8 +210,8 @@ class MCPClient {
 
     this.registerServer({
       name: 'code-quality',
-      command: nodePath,
-      args: ['dist/index.js'],
+      command: 'npm',
+      args: ['run', 'start'],
       cwd: './mcp-servers/code-quality',
       status: 'stopped',
       capabilities: ['analyze_complexity', 'detect_tech_debt', 'suggest_refactoring'],
@@ -221,8 +219,8 @@ class MCPClient {
 
     this.registerServer({
       name: 'knowledge-graph',
-      command: nodePath,
-      args: ['dist/index.js'],
+      command: 'npm',
+      args: ['run', 'start'],
       cwd: './mcp-servers/knowledge-graph',
       status: 'stopped',
       capabilities: ['build_knowledge_graph', 'query_knowledge', 'analyze_relationships', 'find_patterns'],
@@ -580,6 +578,28 @@ class MCPClient {
   getServerStatus(serverName: string): string | null {
     const server = this.servers.get(serverName);
     return server ? server.status : null;
+  }
+
+  simulateServerStart(serverName: string): boolean {
+    const server = this.servers.get(serverName);
+    if (!server) {
+      return false;
+    }
+    
+    server.status = 'running';
+    console.log(`MCP Server ${serverName} simulated start`);
+    return true;
+  }
+
+  simulateServerStop(serverName: string): boolean {
+    const server = this.servers.get(serverName);
+    if (!server) {
+      return false;
+    }
+    
+    server.status = 'stopped';
+    console.log(`MCP Server ${serverName} simulated stop`);
+    return true;
   }
 
   async getAvailableTools(serverName: string): Promise<MCPTool[]> {
