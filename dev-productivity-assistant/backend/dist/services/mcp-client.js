@@ -16,9 +16,12 @@ class MCPServerProcess extends events_1.EventEmitter {
             return true;
         }
         try {
+            const cwd = this.server.cwd ? require('path').resolve(this.server.cwd) : process.cwd();
             this.process = (0, child_process_1.spawn)(this.server.command, this.server.args, {
-                cwd: this.server.cwd,
+                cwd,
                 stdio: ['pipe', 'pipe', 'pipe'],
+                env: { ...process.env, PATH: process.env.PATH },
+                shell: false,
             });
             this.process.stdout?.on('data', (data) => {
                 this.handleMessage(data.toString());
@@ -146,9 +149,10 @@ class MCPClient {
     }
     initializeDefaultServers() {
         // Register default MCP servers
+        const nodePath = process.execPath || 'node';
         this.registerServer({
             name: 'git-analytics',
-            command: 'node',
+            command: nodePath,
             args: ['dist/index.js'],
             cwd: './mcp-servers/git-analytics',
             status: 'stopped',
@@ -156,7 +160,7 @@ class MCPClient {
         });
         this.registerServer({
             name: 'code-quality',
-            command: 'node',
+            command: nodePath,
             args: ['dist/index.js'],
             cwd: './mcp-servers/code-quality',
             status: 'stopped',
@@ -164,7 +168,7 @@ class MCPClient {
         });
         this.registerServer({
             name: 'knowledge-graph',
-            command: 'node',
+            command: nodePath,
             args: ['dist/index.js'],
             cwd: './mcp-servers/knowledge-graph',
             status: 'stopped',
