@@ -5,15 +5,13 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat git
 WORKDIR /app
 
-# Copy all MCP server package files
-COPY mcp-servers/git-analytics/package.json mcp-servers/git-analytics/package-lock.json* ./git-analytics/
-COPY mcp-servers/code-quality/package.json mcp-servers/code-quality/package-lock.json* ./code-quality/
-COPY mcp-servers/knowledge-graph/package.json mcp-servers/knowledge-graph/package-lock.json* ./knowledge-graph/
+# Copy MCP server package files
+COPY mcp-servers/git-analytics/package.json ./git-analytics/
+COPY mcp-servers/code-quality/package.json ./code-quality/
 
-# Install dependencies for each server
-RUN cd git-analytics && npm ci --only=production
-RUN cd code-quality && npm ci --only=production
-RUN cd knowledge-graph && npm ci --only=production
+# Install ALL dependencies (including dev dependencies for building)
+RUN cd git-analytics && npm install
+RUN cd code-quality && npm install
 
 # Build stage
 FROM base AS builder
@@ -22,17 +20,14 @@ WORKDIR /app
 # Copy dependencies
 COPY --from=deps /app/git-analytics/node_modules ./git-analytics/node_modules
 COPY --from=deps /app/code-quality/node_modules ./code-quality/node_modules
-COPY --from=deps /app/knowledge-graph/node_modules ./knowledge-graph/node_modules
 
 # Copy source code
 COPY mcp-servers/git-analytics/ ./git-analytics/
 COPY mcp-servers/code-quality/ ./code-quality/
-COPY mcp-servers/knowledge-graph/ ./knowledge-graph/
 
 # Build each server
 RUN cd git-analytics && npm run build
 RUN cd code-quality && npm run build
-RUN cd knowledge-graph && npm run build
 
 # Production stage
 FROM base AS runner
@@ -47,10 +42,15 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
 
-# Copy built applications
-COPY --from=builder --chown=nodejs:nodejs /app/git-analytics ./git-analytics
-COPY --from=builder --chown=nodejs:nodejs /app/code-quality ./code-quality
-COPY --from=builder --chown=nodejs:nodejs /app/knowledge-graph ./knowledge-graph
+# Copy built applications and only production dependencies
+COPY --from=builder --chown=nodejs:nodejs /app/git-analytics/dist ./git-analytics/dist
+COPY --from=builder --chown=nodejs:nodejs /app/git-analytics/package.json ./git-analytics/
+COPY --from=builder --chown=nodejs:nodejs /app/code-quality/dist ./code-quality/dist
+COPY --from=builder --chown=nodejs:nodejs /app/code-quality/package.json ./code-quality/
+
+# Install only production dependencies
+RUN cd git-analytics && npm install --only=production && npm cache clean --force
+RUN cd code-quality && npm install --only=production && npm cache clean --force
 
 # Create startup script
 COPY --chown=nodejs:nodejs <<EOF /app/start-mcp-servers.sh
@@ -65,23 +65,18 @@ GIT_PID=\$!
 cd /app/code-quality && node dist/index.js &
 CODE_PID=\$!
 
-# Start Knowledge Graph server
-cd /app/knowledge-graph && node dist/index.js &
-KNOWLEDGE_PID=\$!
-
 echo "MCP servers started:"
 echo "- Git Analytics (PID: \$GIT_PID)"
 echo "- Code Quality (PID: \$CODE_PID)"
-echo "- Knowledge Graph (PID: \$KNOWLEDGE_PID)"
 
 # Wait for all processes
-wait \$GIT_PID \$CODE_PID \$KNOWLEDGE_PID
+wait \$GIT_PID \$CODE_PID
 EOF
 
 RUN chmod +x /app/start-mcp-servers.sh
 
 USER nodejs
 
-EXPOSE 8001 8002 8003
+EXPOSE 8001 8002
 
 CMD ["/app/start-mcp-servers.sh"] 

@@ -147,7 +147,7 @@ router.post('/test-ollama', async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const response = await llmService.generateResponse(prompt);
+    const response = await llmService.complete(prompt);
     
     res.json({
       response: response.content,
@@ -609,7 +609,7 @@ Provide analysis in JSON format with:
 - patterns: array of identified patterns`;
 
   try {
-    const response = await llmService.generateResponse(prompt);
+    const response = await llmService.complete(prompt);
     const analysis = parseAIResponse(response.content, 'code_analysis');
     
     return {
@@ -717,7 +717,7 @@ Provide insights in JSON format with:
 - resources: array of recommended learning resources
 - priority: priority level for each learning area`;
 
-    const response = await llmService.generateResponse(prompt);
+    const response = await llmService.complete(prompt);
     const analysis = parseAIResponse(response.content, 'learning');
     
     return {

@@ -122,7 +122,9 @@ class ProductivityMonitor extends EventEmitter {
       // Keep only last 100 metric entries
       if (this.metrics.size > 100) {
         const oldestKey = this.metrics.keys().next().value;
-        this.metrics.delete(oldestKey);
+        if (oldestKey) {
+          this.metrics.delete(oldestKey);
+        }
       }
       
     } catch (error) {

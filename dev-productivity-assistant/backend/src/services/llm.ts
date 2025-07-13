@@ -100,7 +100,7 @@ class LLMService {
     return this.complete(prompt);
   }
 
-  private async complete(prompt: string): Promise<LLMResponse> {
+  async complete(prompt: string): Promise<LLMResponse> {
     try {
       if (this.config.provider === 'anthropic' && this.anthropic) {
         const response = await this.anthropic.messages.create({
