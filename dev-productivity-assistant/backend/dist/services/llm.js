@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createLLMService = createLLMService;
 const sdk_1 = __importDefault(require("@anthropic-ai/sdk"));
 const openai_1 = __importDefault(require("openai"));
+const ollama_1 = require("ollama");
 class LLMService {
     constructor(config) {
         this.config = config;
@@ -14,13 +15,24 @@ class LLMService {
     initializeProvider() {
         switch (this.config.provider) {
             case 'anthropic':
+                if (!this.config.apiKey) {
+                    throw new Error('ANTHROPIC_API_KEY is required for Anthropic provider');
+                }
                 this.anthropic = new sdk_1.default({
                     apiKey: this.config.apiKey,
                 });
                 break;
             case 'openai':
+                if (!this.config.apiKey) {
+                    throw new Error('OPENAI_API_KEY is required for OpenAI provider');
+                }
                 this.openai = new openai_1.default({
                     apiKey: this.config.apiKey,
+                });
+                break;
+            case 'ollama':
+                this.ollama = new ollama_1.Ollama({
+                    host: this.config.baseUrl || 'http://localhost:11434',
                 });
                 break;
             default:
@@ -86,6 +98,24 @@ class LLMService {
                     };
                 }
                 throw new Error('No content in OpenAI response');
+            }
+            if (this.config.provider === 'ollama' && this.ollama) {
+                const response = await this.ollama.chat({
+                    model: this.config.model || 'llama3.2',
+                    messages: [{ role: 'user', content: prompt }],
+                    stream: false,
+                });
+                if (response.message && response.message.content) {
+                    return {
+                        content: response.message.content,
+                        usage: {
+                            inputTokens: response.prompt_eval_count || 0,
+                            outputTokens: response.eval_count || 0,
+                            totalTokens: (response.prompt_eval_count || 0) + (response.eval_count || 0),
+                        },
+                    };
+                }
+                throw new Error('No content in Ollama response');
             }
             throw new Error('No LLM provider configured');
         }
@@ -179,17 +209,25 @@ Make explanations accessible to developers of all experience levels.`;
 }
 // Factory function to create LLM service instance
 function createLLMService() {
-    const provider = process.env.LLM_PROVIDER || 'anthropic';
-    const apiKey = provider === 'anthropic'
-        ? process.env.ANTHROPIC_API_KEY
-        : process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-        throw new Error(`${provider.toUpperCase()}_API_KEY environment variable is required`);
+    const provider = process.env.LLM_PROVIDER || 'ollama';
+    let apiKey;
+    if (provider === 'anthropic') {
+        apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+            throw new Error('ANTHROPIC_API_KEY environment variable is required for Anthropic provider');
+        }
+    }
+    else if (provider === 'openai') {
+        apiKey = process.env.OPENAI_API_KEY;
+        if (!apiKey) {
+            throw new Error('OPENAI_API_KEY environment variable is required for OpenAI provider');
+        }
     }
     return new LLMService({
         provider,
         apiKey,
         model: process.env.LLM_MODEL,
+        baseUrl: process.env.OLLAMA_BASE_URL,
     });
 }
 //# sourceMappingURL=llm.js.map

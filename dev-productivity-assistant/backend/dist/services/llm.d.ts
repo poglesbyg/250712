@@ -1,8 +1,9 @@
-export type LLMProvider = 'anthropic' | 'openai';
+export type LLMProvider = 'anthropic' | 'openai' | 'ollama';
 export interface LLMConfig {
     provider: LLMProvider;
-    apiKey: string;
+    apiKey?: string;
     model?: string;
+    baseUrl?: string;
 }
 export interface LLMResponse {
     content: string;
@@ -28,6 +29,7 @@ export interface AnalysisRequest {
 declare class LLMService {
     private anthropic?;
     private openai?;
+    private ollama?;
     private config;
     constructor(config: LLMConfig);
     private initializeProvider;
@@ -36,7 +38,7 @@ declare class LLMService {
     generateLearningInsights(skillData: any, preferences?: any): Promise<LLMResponse>;
     optimizeWorkflow(workflowData: any, goals?: string[]): Promise<LLMResponse>;
     explainCodeQuality(qualityData: any, file?: string): Promise<LLMResponse>;
-    private complete;
+    complete(prompt: string): Promise<LLMResponse>;
     private buildCodeGenerationPrompt;
     private buildProductivityAnalysisPrompt;
     private buildLearningInsightsPrompt;

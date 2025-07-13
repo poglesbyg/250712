@@ -302,10 +302,10 @@ async function gatherPatternData(projectPath: string, startDate: Date, endDate: 
     });
 
     const patterns = {
-      commitPatterns: analyzeCommitPatterns(log.all),
+      commitPatterns: analyzeCommitPatterns([...log.all]),
       fileChangePatterns: await analyzeFileChangePatterns(git, startDate, endDate),
-      workingPatterns: analyzeWorkingPatterns(log.all),
-      collaborationPatterns: analyzeCollaborationPatterns(log.all)
+      workingPatterns: analyzeWorkingPatterns([...log.all]),
+      collaborationPatterns: analyzeCollaborationPatterns([...log.all])
     };
 
     return patterns;
@@ -342,10 +342,10 @@ async function gatherAnomalyData(projectPath: string, startDate: Date, endDate: 
     });
 
     return {
-      commitFrequency: analyzeCommitFrequency(log.all),
-      commitSizes: analyzeCommitSizes(log.all),
-      workingHours: analyzeWorkingHours(log.all),
-      authorActivity: analyzeAuthorActivity(log.all)
+      commitFrequency: analyzeCommitFrequency([...log.all]),
+      commitSizes: analyzeCommitSizes([...log.all]),
+      workingHours: analyzeWorkingHours([...log.all]),
+      authorActivity: analyzeAuthorActivity([...log.all])
     };
   } catch (error) {
     return { error: 'Failed to gather anomaly data' };

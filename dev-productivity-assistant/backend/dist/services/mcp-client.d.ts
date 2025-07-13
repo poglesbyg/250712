@@ -30,6 +30,7 @@ declare class MCPClient {
     private simulateToolExecution;
     private simulateGitAnalytics;
     private simulateCodeQuality;
+    private simulateKnowledgeGraph;
     getServerList(): MCPServer[];
     getServerStatus(serverName: string): string | null;
     getAvailableTools(serverName: string): Promise<MCPTool[]>;
