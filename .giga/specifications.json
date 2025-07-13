@@ -1,0 +1,18 @@
+[
+  {
+    "fileName": "main-overview.mdc",
+    "description": "Complete overview of the entire system, its architecture, and key components"
+  },
+  {
+    "fileName": "frontend-architecture.mdc",
+    "description": "Documentation of the frontend components, state management, and UI patterns"
+  },
+  {
+    "fileName": "api-endpoints.mdc",
+    "description": "Documentation of the API endpoints, request/response formats, and authentication"
+  },
+  {
+    "fileName": "data-models.mdc",
+    "description": "Documentation of the data models, database schema, and entity relationships"
+  }
+]
