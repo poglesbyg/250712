@@ -4,19 +4,31 @@
   "description": "AI-powered developer productivity assistant with MCP integration",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:mcp\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
-    "build": "npm run build:frontend && npm run build:backend",
+    "dev:mcp": "concurrently \"npm run dev:mcp:code-quality\" \"npm run dev:mcp:git-analytics\" \"npm run dev:mcp:knowledge-graph\"",
+    "dev:mcp:code-quality": "cd mcp-servers/code-quality && npm run dev",
+    "dev:mcp:git-analytics": "cd mcp-servers/git-analytics && npm run dev",
+    "dev:mcp:knowledge-graph": "cd mcp-servers/knowledge-graph && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend && npm run build:mcp",
     "build:frontend": "cd frontend && npm run build",
     "build:backend": "cd backend && npm run build",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../mcp-servers && npm install"
+    "build:mcp": "cd mcp-servers/code-quality && npm run build && cd ../git-analytics && npm run build && cd ../knowledge-graph && npm run build",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../mcp-servers && npm install",
+    "neo4j:start": "docker run --name dev-productivity-neo4j -p7474:7474 -p7687:7687 -d -v $HOME/neo4j/data:/data -v $HOME/neo4j/logs:/logs -v $HOME/neo4j/import:/var/lib/neo4j/import -v $HOME/neo4j/plugins:/plugins --env NEO4J_AUTH=neo4j/devproductivity neo4j:latest",
+    "neo4j:stop": "docker stop dev-productivity-neo4j && docker rm dev-productivity-neo4j"
   },
-  "keywords": ["ai", "productivity", "developer-tools", "mcp", "llm"],
+  "keywords": ["ai", "productivity", "developer-tools", "mcp", "llm", "graph-database", "knowledge-graph"],
   "author": "Claude Code Assistant",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "neo4j-driver": "^5.15.0",
+    "d3": "^7.8.5",
+    "vis-network": "^9.1.6"
   },
   "workspaces": [
     "frontend",
